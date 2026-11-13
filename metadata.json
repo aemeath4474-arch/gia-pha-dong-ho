@@ -1,0 +1,6 @@
+{
+  "name": "Gia Phả Số – Cội Nguồn Việt",
+  "description": "Dự án xã hội phi lợi nhuận số hóa, phiên chép đối chiếu văn bản và xây dựng sơ đồ phả hệ từ tư liệu Bối Khê Trạng nguyên gia phả (ký hiệu A.1046).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
