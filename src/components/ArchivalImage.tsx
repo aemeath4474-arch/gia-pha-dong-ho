@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BookOpen } from 'lucide-react';
 
 interface ArchivalImageProps {
@@ -17,6 +17,10 @@ export const ArchivalImage: React.FC<ArchivalImageProps> = ({
   imgClassName = '',
 }) => {
   const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setHasError(false);
+  }, [src]);
 
   if (!src || hasError) {
     return (
@@ -37,8 +41,10 @@ export const ArchivalImage: React.FC<ArchivalImageProps> = ({
       src={src}
       alt={alt}
       referrerPolicy="no-referrer"
+      draggable={false}
+      onContextMenu={(e) => e.preventDefault()}
       onError={() => setHasError(true)}
-      className={imgClassName || 'w-full h-full object-cover'}
+      className={`select-none ${imgClassName || 'w-full h-full object-cover'}`}
     />
   );
 };

@@ -1,17 +1,50 @@
 import React from 'react';
 import { ArrowRight, ExternalLink } from 'lucide-react';
-import {
-  AppSection,
-  ATTRIBUTION_VERBATIM,
-  PROJECT_METADATA,
-  REFERENCE_SOURCES,
-} from '../data/archiveData';
+import { ARCHIVE_IMAGES } from '../data/seedData';
+import type { AboutInfo, AppSection, ReferenceSource } from '../types/archive';
+import { ArchivalImage } from './ArchivalImage';
 
 interface AboutViewProps {
+  aboutInfo: AboutInfo;
+  sources: ReferenceSource[];
   onNavigate: (section: AppSection) => void;
 }
 
-export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
+export const AboutView: React.FC<AboutViewProps> = ({
+  aboutInfo,
+  sources,
+  onNavigate,
+}) => {
+  const thematicFigures = [
+    {
+      id: 'about-goal',
+      title: '1. Mục tiêu số hóa gia phả dòng họ',
+      category: 'Ảnh minh họa',
+      imageUrl: ARCHIVE_IMAGES.boikheCourtyard,
+      caption:
+        'Ảnh minh họa không gian di sản kiến trúc truyền thống vùng Bối Khê — bối cảnh văn hóa gắn liền với mục tiêu gìn giữ ký ức dòng họ cho thế hệ sau.',
+      source: 'Ảnh minh họa di sản văn hóa Bối Khê — dự án B02',
+    },
+    {
+      id: 'about-preserve',
+      title: '2. Bảo tồn tư liệu Hán Nôm trước nguy cơ hư hại',
+      category: 'Ảnh minh họa',
+      imageUrl: ARCHIVE_IMAGES.readingRoom,
+      caption:
+        'Ảnh minh họa không gian bảo quản thư tịch Hán Nôm tại thư viện lưu trữ nhằm hạn chế tác động cơ học trực tiếp lên bản chép tay giấy dó.',
+      source: 'Ảnh minh họa không gian lưu trữ Hán Nôm — dự án B02',
+    },
+    {
+      id: 'about-workflow',
+      title: '3. Quy trình chuyển đổi tư liệu giấy sang dữ liệu số',
+      category: 'Ảnh minh họa',
+      imageUrl: ARCHIVE_IMAGES.digitizationStudio,
+      caption:
+        'Ảnh minh họa bàn chụp bảo tồn kết nối quy trình: Chụp ảnh từng trang (82 trang) → Phiên chép Hán Nôm & Dịch nghĩa → Chuẩn hóa cây phả hệ.',
+      source: 'Ảnh minh họa quy trình số hóa gia phả — dự án B02',
+    },
+  ];
+
   return (
     <div className="max-w-[1280px] mx-auto px-4 sm:px-8 py-10 space-y-14">
       {/* Header */}
@@ -19,13 +52,13 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
         <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.14em] text-[#57534E]">
           <span>Trang giới thiệu</span>
           <span aria-hidden="true">·</span>
-          <span>Dự án xã hội phi lợi nhuận</span>
+          <span>{aboutInfo.nature}</span>
           <span aria-hidden="true">·</span>
-          <span className="font-mono text-[#1C1917]">Mã dự án B02</span>
+          <span className="font-mono text-[#1C1917]">Mã dự án {aboutInfo.projectCode}</span>
         </div>
 
         <h1 className="font-display text-3xl sm:text-5xl font-semibold text-[#1C1917] max-w-3xl [text-wrap:balance]">
-          {PROJECT_METADATA.appName}
+          {aboutInfo.appName}
         </h1>
       </header>
 
@@ -37,7 +70,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
               Thông tin công bố sản phẩm thực tập
             </p>
             <blockquote className="font-display text-xl sm:text-2xl leading-relaxed text-[#1C1917]">
-              “{ATTRIBUTION_VERBATIM}”
+              “{aboutInfo.attributionVerbatim}”
             </blockquote>
           </div>
 
@@ -45,24 +78,8 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
             <h2 className="font-display text-2xl font-semibold text-[#1C1917]">
               Mục tiêu và giá trị cộng đồng
             </h2>
-            <p>
-              Dự án được xây dựng nhằm thiết lập một nền tảng số hóa chuẩn mực cho tư liệu gia phả
-              Hán Nôm, lấy đối tượng trọng tâm là tập tư liệu{' '}
-              <em>Bối Khê Trạng nguyên gia phả</em> (ký hiệu{' '}
-              <span className="font-mono text-[#1C1917]">A.1046</span>) thuộc dòng họ Nguyễn ở Bối
-              Khê.
-            </p>
-            <p>
-              Với tính chất là dự án xã hội phi lợi nhuận phục vụ học tập và nghiên cứu, hệ thống
-              tập trung vào khả năng đối chiếu song song giữa ảnh trang gốc và văn bản phiên chép,
-              đồng thời cấu trúc hóa dữ liệu thế thứ thành sơ đồ phả hệ trực quan để thế hệ sau dễ
-              dàng tra cứu cội nguồn.
-            </p>
-            <p>
-              Mọi bước triển khai thu thập, sao chụp và công khai tư liệu đều đặt dưới nguyên tắc tôn
-              trọng tuyệt đối quy định bảo quản và bản quyền lưu trữ của Thư viện Viện Nghiên cứu
-              Hán Nôm cùng các cơ quan có thẩm quyền.
-            </p>
+            <p>{aboutInfo.projectSummary}</p>
+            <p>{aboutInfo.ethicsCommitment}</p>
           </div>
 
           <div className="pt-2 flex flex-wrap items-center gap-4">
@@ -73,6 +90,13 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
             >
               <span>Trải nghiệm trình đối chiếu trang</span>
               <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigate('dossiers')}
+              className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-[#1C1917] border border-[#D6CEBE] hover:border-[#1C1917] rounded-sm transition-colors"
+            >
+              <span>Xem hệ thống 21 hồ sơ</span>
             </button>
             <button
               type="button"
@@ -93,49 +117,96 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
           <dl className="divide-y divide-[#E5DEC9] text-sm">
             <div className="py-3 flex justify-between gap-4">
               <dt className="text-[#57534E]">Sinh viên thực hiện</dt>
-              <dd className="font-semibold text-[#1C1917] text-right">
-                {PROJECT_METADATA.studentInfo.studentName}
-              </dd>
+              <dd className="font-semibold text-[#1C1917] text-right">{aboutInfo.studentName}</dd>
             </div>
             <div className="py-3 flex justify-between gap-4">
               <dt className="text-[#57534E]">Mã sinh viên</dt>
-              <dd className="font-mono text-[#1C1917] text-right">
-                {PROJECT_METADATA.studentInfo.studentId}
-              </dd>
+              <dd className="font-mono text-[#1C1917] text-right">{aboutInfo.studentId}</dd>
             </div>
             <div className="py-3 flex justify-between gap-4">
               <dt className="text-[#57534E]">Mã dự án</dt>
               <dd className="font-mono text-[#8C2D19] font-semibold text-right">
-                {PROJECT_METADATA.studentInfo.projectCode}
+                {aboutInfo.projectCode}
               </dd>
             </div>
             <div className="py-3 flex justify-between gap-4">
               <dt className="text-[#57534E]">Nhóm / Đợt</dt>
-              <dd className="text-[#1C1917] text-right">{PROJECT_METADATA.studentInfo.team}</dd>
+              <dd className="text-[#1C1917] text-right">{aboutInfo.team}</dd>
             </div>
             <div className="py-3 flex justify-between gap-4">
               <dt className="text-[#57534E]">Chương trình</dt>
-              <dd className="text-[#1C1917] text-right max-w-[220px]">
-                {PROJECT_METADATA.studentInfo.program}
-              </dd>
+              <dd className="text-[#1C1917] text-right max-w-[220px]">{aboutInfo.program}</dd>
             </div>
             <div className="py-3 flex justify-between gap-4">
               <dt className="text-[#57534E]">Loại hình</dt>
-              <dd className="font-medium text-[#1C1917] text-right">
-                {PROJECT_METADATA.studentInfo.nature}
+              <dd className="font-medium text-[#1C1917] text-right">{aboutInfo.nature}</dd>
+            </div>
+            <div className="py-3 flex justify-between gap-4">
+              <dt className="text-[#57534E]">Người số hoá, ngày số hoá</dt>
+              <dd className="font-mono text-xs text-[#1C1917] text-right">
+                Nguyễn Văn An – PH70154 · 17/11/2026
+              </dd>
+            </div>
+            <div className="py-3 flex justify-between gap-4">
+              <dt className="text-[#57534E]">Chuẩn biên mục</dt>
+              <dd className="text-xs font-medium text-[#8C2D19] text-right">
+                20 trường chuẩn · Điều 63 Luật 2024
               </dd>
             </div>
           </dl>
         </aside>
       </section>
 
+      {/* 3 Visual Sections: Digitization Goal, Hán Nôm Preservation, Paper-to-Digital Workflow */}
+      <section className="pt-4 border-t border-[#D6CEBE] space-y-6">
+        <div>
+          <p className="text-xs uppercase tracking-[0.14em] text-[#8C2D19] font-medium">
+            Tư liệu hình ảnh giới thiệu đề tài
+          </p>
+          <h2 className="mt-1 font-display text-2xl sm:text-3xl font-semibold text-[#1C1917]">
+            Mục tiêu số hóa, bảo tồn Hán Nôm &amp; quy trình chuyển đổi số
+          </h2>
+          <p className="mt-1 text-xs text-[#57534E]">
+            Nhóm ảnh minh họa trực quan mô tả định hướng thực hiện đề tài “Gia phả dòng họ từ bản
+            chép tay sang bản số”.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {thematicFigures.map((fig) => (
+            <figure
+              key={fig.id}
+              className="border border-[#D6CEBE] bg-[#FBF9F5] flex flex-col justify-between"
+            >
+              <div>
+                <div className="aspect-[16/10] bg-[#EBE6DF] border-b border-[#D6CEBE] overflow-hidden">
+                  <ArchivalImage src={fig.imageUrl} alt={fig.title} caption={fig.caption} />
+                </div>
+                <div className="p-5 space-y-2">
+                  <div className="text-[11px] font-mono text-[#57534E] uppercase tracking-[0.06em]">
+                    {fig.category}
+                  </div>
+                  <h3 className="font-display text-lg font-semibold text-[#1C1917]">{fig.title}</h3>
+                  <figcaption className="text-xs text-[#44403C] leading-relaxed">
+                    {fig.caption}
+                  </figcaption>
+                </div>
+              </div>
+              <div className="px-5 py-3 border-t border-[#E5DEC9] bg-[#F6F2EA] text-[11px] text-[#57534E]">
+                Nguồn: {fig.source}
+              </div>
+            </figure>
+          ))}
+        </div>
+      </section>
+
       {/* Reference Sources Quick List */}
       <section className="pt-4 border-t border-[#D6CEBE] space-y-5">
         <h2 className="font-display text-2xl font-semibold text-[#1C1917]">
-          Danh mục nguồn tư liệu tham khảo
+          Danh mục nguồn tư liệu tham khảo ({sources.length} nguồn)
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {REFERENCE_SOURCES.map((source) => (
+          {sources.map((source) => (
             <a
               key={source.id}
               href={source.url}
