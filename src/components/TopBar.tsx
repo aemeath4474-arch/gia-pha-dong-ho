@@ -9,11 +9,12 @@ interface TopBarProps {
 }
 
 const NAV_ITEMS: { id: AppSection; label: string }[] = [
-  { id: 'overview', label: 'Tổng quan' },
+  { id: 'overview', label: 'Trang chủ' },
   { id: 'comparator', label: 'Đối chiếu' },
   { id: 'genealogy', label: 'Phả hệ' },
   { id: 'dossiers', label: '21 Hồ sơ' },
   { id: 'dossier', label: 'Pháp lý' },
+  { id: 'qa', label: 'Hỏi đáp' },
   { id: 'about', label: 'Giới thiệu' },
 ];
 
@@ -40,7 +41,7 @@ export const TopBar: React.FC<TopBarProps> = ({ appName, activeSection, onNaviga
         {/* Zone 2: Clean single-line text navigation links */}
         <nav
           aria-label="Điều hướng chính"
-          className="hidden lg:flex items-center gap-6 text-sm font-medium text-[#57534E]"
+          className="hidden lg:flex items-center gap-5 text-sm font-medium text-[#57534E]"
         >
           {NAV_ITEMS.map((item) => {
             const isActive = activeSection === item.id;

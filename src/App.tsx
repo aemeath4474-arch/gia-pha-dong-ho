@@ -7,6 +7,7 @@ import { DossiersCatalogView } from './components/DossiersCatalogView';
 import { DossierView } from './components/DossierView';
 import { GenealogyView } from './components/GenealogyView';
 import { OverviewView } from './components/OverviewView';
+import { ProjectQAView } from './components/ProjectQAView';
 import { TopBar } from './components/TopBar';
 import { INITIAL_DATABASE } from './data/seedData';
 import type { AppSection, ArchiveDatabase } from './types/archive';
@@ -104,6 +105,14 @@ export default function App() {
           />
         )}
 
+        {activeSection === 'qa' && (
+          <ProjectQAView
+            db={db}
+            onNavigate={navigateTo}
+            onOpenPage={openPageInComparator}
+          />
+        )}
+
         {activeSection === 'about' && (
           <AboutView aboutInfo={db.aboutInfo} sources={db.sources} onNavigate={navigateTo} />
         )}
@@ -134,7 +143,7 @@ export default function App() {
               onClick={() => navigateTo('overview')}
               className="hover:text-[#1C1917] transition-colors whitespace-nowrap"
             >
-              Tổng quan
+              Trang chủ
             </button>
             <button
               type="button"
@@ -170,6 +179,13 @@ export default function App() {
               className="hover:text-[#1C1917] transition-colors whitespace-nowrap"
             >
               Hồ sơ &amp; Pháp lý
+            </button>
+            <button
+              type="button"
+              onClick={() => navigateTo('qa')}
+              className="hover:text-[#8C2D19] transition-colors whitespace-nowrap"
+            >
+              Hỏi đáp
             </button>
             <button
               type="button"

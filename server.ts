@@ -17,6 +17,9 @@ import type {
   ImageCategory,
   ImageProvenanceItem,
   MediaImageAsset,
+  ProjectQACitation,
+  ProjectQAHistoryTurn,
+  ProjectQAResponse,
   ReferenceSource,
   SourceCheckResult,
   VerificationState,
@@ -709,6 +712,296 @@ async function startServer(): Promise<void> {
         friendly = 'GEMINI_API_KEY không hợp lệ hoặc chưa được cấp quyền truy cập mô hình.';
       } else if (rawMessage) {
         friendly = `Lỗi chuyển đổi tư liệu: ${rawMessage}`;
+      }
+      res.status(502).json({ error: friendly });
+    }
+  });
+
+  // Grounded Project Q&A with Gemini AI
+  function buildProjectQAGroundingContext(db: ArchiveDatabase): string {
+    const validAppSections = ['overview', 'comparator', 'digitize', 'genealogy', 'dossiers', 'dossier', 'about', 'qa'];
+    const dossierDigest = db.dossiers
+      .map(
+        (d) =>
+          `- ${d.dossierCode} | ${d.documentName} | ${d.contentType} | Trang: ${d.relatedPages} (trang mẫu ${d.primaryPage}) | Niên đại: ${d.archivalRecord.dating} | Phiên âm: ${d.archivalRecord.transcriptionAndTranslation.phienAmVerification} | Dịch nghĩa: ${d.archivalRecord.transcriptionAndTranslation.dichNghiaVerification} | Điểm chưa chắc: ${d.archivalRecord.uncertainPoints}`
+      )
+      .join('\n');
+
+    const genealogyDigest = db.characters
+      .map(
+        (c) =>
+          `- ${c.characterCode}: ${c.name} (${c.generationLabel}, ${c.branchType} - ${c.branchLabel}) | Chức danh: ${c.roleTitle} | Tên húy: ${c.tabooName} | Quan hệ: ${c.familyRelation} | Nguồn: ${c.folioRange} (trang ${c.targetPage}) | Trạng thái: ${c.verificationStatus} (${c.verificationNote})`
+      )
+      .join('\n');
+
+    const sampleFoliosDigest = db.folios
+      .filter((f) => [1, 2, 12, 24, 43, 55, 68, 82].includes(f.pageNumber))
+      .map(
+        (f) =>
+          `- ${f.folioCode} (${f.identifier}, Tr.${String(f.pageNumber).padStart(2, '0')}): ${f.title} | ${f.sectionLabel} | Trạng thái: ${f.verificationStatus} | Tóm tắt: ${f.summary}`
+      )
+      .join('\n');
+
+    const sourcesDigest = db.sources
+      .map((s) => `- Nguồn ${s.id}: ${s.institution} — ${s.title} (${s.url})`)
+      .join('\n');
+
+    return [
+      'NGỮ CẢNH DỮ LIỆU CHÍNH THỨC CỦA DỰ ÁN B02 – GIA PHẢ SỐ CỘI NGUỒN VIỆT:',
+      '',
+      '1. THÔNG TIN DỰ ÁN & SINH VIÊN THỰC HIỆN:',
+      `- Tên website: ${db.aboutInfo.appName}`,
+      `- Công bố nguyên văn: "${db.aboutInfo.attributionVerbatim}"`,
+      `- Sinh viên: ${db.aboutInfo.studentName} | MSSV: ${db.aboutInfo.studentId} | Mã dự án: ${db.aboutInfo.projectCode}`,
+      `- Nhóm/Chương trình: ${db.aboutInfo.team} · ${db.aboutInfo.program} · ${db.aboutInfo.nature}`,
+      `- Tóm tắt mục tiêu: ${db.aboutInfo.projectSummary}`,
+      `- Cam kết đạo đức học thuật: ${db.aboutInfo.ethicsCommitment}`,
+      '',
+      '2. TƯ LIỆU TRỌNG TÂM & PHÁP LÝ (ĐIỀU 63 LUẬT LƯU TRỮ 2024):',
+      `- Tư liệu trọng tâm: ${db.legalInfo.documentName}, ký hiệu thư viện: ${db.legalInfo.callNumber}. Tổng số trang dự kiến số hóa: ${db.folios.length} trang (mã A.1046-T01 đến A.1046-T82, định danh chuẩn B02-00101 đến B02-00182).`,
+      `- Nơi lưu giữ hiện nay (địa giới 2 cấp): ${db.legalInfo.repositoryName}, ${db.legalInfo.repositoryAddress} (${db.legalInfo.repositoryAddressNote}).`,
+      `- Địa danh Bối Khê: hiện nay theo đơn vị hành chính 2 cấp là thôn Bối Khê, xã Tam Hưng, Thành phố Hà Nội; địa danh cũ trong thư mục xưa là xã Song Khê, huyện Thanh Oai, tỉnh Hà Tây (cũ).`,
+      `- Mô tả & tình trạng bản gốc: ${db.legalInfo.contentDescription} | Tình trạng: ${db.legalInfo.archivalMasterRecord.originalCondition}.`,
+      `- Loại bản đang hiển thị (Điều 63 Luật 2024): ${db.legalInfo.archivalMasterRecord.displayedCopyType}.`,
+      `- Quyền truy cập & công bố: ${db.legalInfo.accessRights} | ${db.legalInfo.publicRights}`,
+      `- Phần chưa công bố: ${db.legalInfo.archivalMasterRecord.unpublishedParts}`,
+      `- Cấp phép chính thức: ${db.legalInfo.officialApprovalConfirmation} | Trạng thái xác minh hồ sơ: ${db.legalInfo.verificationStatus}.`,
+      `- Chuẩn biên mục 20 trường: Mỗi hồ sơ (B02-00001..B02-00021) và mỗi trang (B02-00101..B02-00182) tuân thủ 20 trường chuẩn: Mã định danh, Nhan đề, Loại, Niên đại, Mô tả, Ngôn ngữ/chữ viết, Nơi lưu giữ hiện nay (2 cấp), Nơi lưu giữ tại thời điểm tư liệu (giữ địa danh cũ), Số đăng ký tại nơi lưu giữ, Loại bản đang hiển thị (Điều 63 Luật 2024), Tình trạng bản gốc, Tệp đính kèm, Phiên âm & Dịch nghĩa (tách riêng mức kiểm chứng), Quan hệ, Người/Đơn vị cho phép, Phạm vi được phép, Phần chưa công bố, Nguồn dẫn, Người số hoá & ngày số hoá, Điểm chưa chắc chắn.`,
+      '',
+      `3. DANH MỤC 21 HỒ SƠ BIÊN MỤC (${db.dossiers.length} hồ sơ B02-00001 – B02-00021):`,
+      dossierDigest,
+      '',
+      `4. CẤU TRÚC 82 TRANG ĐỐI CHIẾU (A.1046-T01..T82 | B02-00101..B02-00182):`,
+      `- Phần 1 (Trang 01–42): Bối Khê Trạng nguyên gia phả — Phả tự, lệ gia phả, hành trạng Bối Khê Trạng nguyên và văn bia/phụ chép.`,
+      `- Phần 2 (Trang 43–82): Bối Khê Nguyễn tộc gia phả thế thứ — Bảng thế thứ các đời, phân chi Giáp/Ất và ghi chú hậu thế.`,
+      `- Trang tiêu biểu:`,
+      sampleFoliosDigest,
+      '',
+      `5. SƠ ĐỒ PHẢ HỆ TRONG DỰ ÁN (${db.characters.length} nhân vật cấu trúc):`,
+      genealogyDigest,
+      '',
+      '6. CHỨC NĂNG WEBSITE HIỆN CÓ:',
+      `- Trang chủ (overview), Đối chiếu 82 trang 3 lớp ảnh-Hán Nôm-Việt ngữ (comparator), Chuyển đổi bản chép tay Hán Nôm sang bản số bằng Gemini AI (digitize), Sơ đồ phả hệ (genealogy), Danh mục 21 hồ sơ chuẩn 20 trường (dossiers), Hồ sơ pháp lý & Nguồn tham khảo (dossier), Giới thiệu nhóm thực hiện (about), Hỏi đáp với Gemini AI (qa).`,
+      `- Nguồn tham khảo (${db.sources.length} nguồn):`,
+      sourcesDigest,
+      `- Mã section hợp lệ khi trích dẫn: ${validAppSections.join(', ')}`,
+    ].join('\n');
+  }
+
+  app.post('/api/qa', async (req: Request, res: Response) => {
+    const body = req.body as
+      | {
+          question?: string;
+          history?: ProjectQAHistoryTurn[];
+        }
+      | undefined;
+
+    const question = (body?.question || '').trim();
+    if (!question) {
+      res.status(400).json({ error: 'Vui lòng nhập câu hỏi về dự án trước khi gửi.' });
+      return;
+    }
+    if (question.length > 2000) {
+      res.status(400).json({ error: 'Câu hỏi vượt quá độ dài tối đa 2.000 ký tự.' });
+      return;
+    }
+
+    const apiKey = (process.env.GEMINI_API_KEY || '').trim();
+    if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
+      res.status(500).json({
+        error:
+          'Máy chủ chưa có GEMINI_API_KEY hợp lệ. Vui lòng thiết lập biến môi trường GEMINI_API_KEY trong phần Secrets.',
+      });
+      return;
+    }
+
+    const db = readDb();
+    const groundingContext = buildProjectQAGroundingContext(db);
+
+    const systemInstruction = [
+      'Bạn là Trợ lý Tra cứu Học thuật & Lưu trữ của dự án "Gia Phả Số – Cội Nguồn Việt" (mã dự án B02, tư liệu Bối Khê Trạng nguyên gia phả ký hiệu A.1046).',
+      'NHIỆM VỤ: Giải đáp câu hỏi của người dùng bằng tiếng Việt chuẩn mực, súc tích, lịch sự, bám sát dữ liệu thực tế của dự án B02 được cung cấp bên dưới.',
+      'NGUYÊN TẮC TRUNG THỰC HỌC THUẬT BẮT BUỘC:',
+      '1. Chỉ khẳng định những thông tin thực sự có trong dữ liệu dự án bên dưới hoặc kiến thức lưu trữ học Việt Nam chung có liên quan trực tiếp đến cấu trúc gia phả/Luật Lưu trữ 2024.',
+      '2. Tuyệt đối KHÔNG tự bịa tên húy, ngày sinh/mất, số điện thoại, công văn/số văn bản cho phép chưa có, hoặc khẳng định bản đang hiển thị trên web là ảnh chụp bản gốc A.1046 từ Viện Nghiên cứu Hán Nôm.',
+      '3. Luôn nêu rõ sự tách biệt mức kiểm chứng khi người dùng hỏi về văn bản: Phiên âm mẫu và cấu trúc 20 trường đã kiểm cấu trúc hiển thị; Dịch nghĩa tiếng Việt và đối chiếu nguyên bản A.1046 tại Thư viện Viện Nghiên cứu Hán Nôm vẫn đang chờ đối chiếu chuyên môn.',
+      '4. Nếu người dùng hỏi ngoài phạm vi dữ liệu dự án B02 hoặc chi tiết chưa xác minh (như các trang A.1046 gốc chưa tiếp cận thực địa), phải nói rõ giới hạn dữ liệu hiện có và chỉ dẫn mục/hồ sơ liên quan trên website.',
+      '5. Trả về JSON đúng schema: answer (câu trả lời rõ ràng, có thể tách đoạn bằng xuống dòng \\n\\n, không dùng markdown phức tạp như bảng lớn), citedRecords (tối đa 4 trích dẫn liên kết thẳng tới section hoặc số trang 1-82 liên quan nhất), suggestedFollowUps (2-3 câu hỏi gợi ý tiếp theo ngắn gọn), verificationNote (1 câu ngắn lưu ý tình trạng xác minh liên quan đến câu hỏi).',
+      '',
+      groundingContext,
+    ].join('\n');
+
+    const safeHistory: { role: 'user' | 'model'; parts: { text: string }[] }[] = Array.isArray(
+      body?.history
+    )
+      ? body.history
+          .slice(-8)
+          .filter(
+            (turn): turn is ProjectQAHistoryTurn =>
+              Boolean(turn) &&
+              (turn.role === 'user' || turn.role === 'model') &&
+              typeof turn.text === 'string' &&
+              turn.text.trim().length > 0
+          )
+          .map((turn) => ({
+            role: turn.role,
+            parts: [{ text: turn.text.trim().slice(0, 2000) }],
+          }))
+      : [];
+
+    const contents = [
+      ...safeHistory,
+      {
+        role: 'user' as const,
+        parts: [{ text: question }],
+      },
+    ];
+
+    try {
+      const ai = new GoogleGenAI({
+        apiKey,
+        httpOptions: { headers: { 'User-Agent': 'aistudio-build' } },
+      });
+
+      const requestPayload = {
+        model: 'gemini-4-hydrogen',
+        contents,
+        config: {
+          systemInstruction,
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              answer: { type: Type.STRING },
+              citedRecords: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    code: { type: Type.STRING },
+                    label: { type: Type.STRING },
+                    section: { type: Type.STRING },
+                    pageNumber: { type: Type.INTEGER },
+                  },
+                  required: ['code', 'label', 'section'],
+                },
+              },
+              suggestedFollowUps: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+              },
+              verificationNote: { type: Type.STRING },
+            },
+            required: ['answer', 'citedRecords', 'suggestedFollowUps', 'verificationNote'],
+          },
+        },
+      };
+
+      let response;
+      let lastErr: unknown;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          response = await ai.models.generateContent(requestPayload);
+          break;
+        } catch (err) {
+          lastErr = err;
+          const msg = err instanceof Error ? err.message : '';
+          const isTransient =
+            msg.includes('503') || msg.includes('UNAVAILABLE') || msg.includes('429');
+          if (attempt === 0 && isTransient) {
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+            continue;
+          }
+          throw err;
+        }
+      }
+
+      const rawText = response?.text;
+      if (!rawText) {
+        if (lastErr) throw lastErr;
+        res.status(502).json({ error: 'Gemini AI không trả về nội dung giải đáp cho câu hỏi.' });
+        return;
+      }
+
+      const parsed = JSON.parse(rawText) as {
+        answer?: string;
+        citedRecords?: Array<{
+          code?: string;
+          label?: string;
+          section?: string;
+          pageNumber?: number;
+        }>;
+        suggestedFollowUps?: string[];
+        verificationNote?: string;
+      };
+
+      const allowedSections = new Set([
+        'overview',
+        'comparator',
+        'digitize',
+        'genealogy',
+        'dossiers',
+        'dossier',
+        'about',
+        'qa',
+      ]);
+
+      const normalizedCitations: ProjectQACitation[] = Array.isArray(parsed.citedRecords)
+        ? parsed.citedRecords.slice(0, 4).map((c) => {
+            const rawSec = String(c.section || 'dossiers').trim();
+            const section = (
+              allowedSections.has(rawSec) ? rawSec : 'dossiers'
+            ) as ProjectQACitation['section'];
+            const pageNum =
+              typeof c.pageNumber === 'number' &&
+              Number.isInteger(c.pageNumber) &&
+              c.pageNumber >= 1 &&
+              c.pageNumber <= 82
+                ? c.pageNumber
+                : undefined;
+            return {
+              code: String(c.code || 'B02').trim(),
+              label: String(c.label || 'Xem mục tư liệu liên quan').trim(),
+              section,
+              pageNumber: pageNum,
+            };
+          })
+        : [];
+
+      const result: ProjectQAResponse = {
+        answer: String(parsed.answer || '').trim(),
+        citedRecords: normalizedCitations,
+        suggestedFollowUps: Array.isArray(parsed.suggestedFollowUps)
+          ? parsed.suggestedFollowUps
+              .map((q) => String(q || '').trim())
+              .filter(Boolean)
+              .slice(0, 3)
+          : [],
+        verificationNote: String(
+          parsed.verificationNote ||
+            'Thông tin đối chiếu theo dữ liệu biên mục hiện hành của dự án B02 (tập A.1046).'
+        ).trim(),
+        modelUsed: 'gemini-4-hydrogen',
+        answeredAt: new Date().toISOString(),
+      };
+
+      res.json(result);
+    } catch (err) {
+      const rawMessage = err instanceof Error ? err.message : '';
+      let friendly = 'Không thể nhận phản hồi từ trợ lý hỏi đáp Gemini AI.';
+      if (rawMessage.includes('503') || rawMessage.includes('UNAVAILABLE')) {
+        friendly =
+          'Dịch vụ Gemini AI đang quá tải tạm thời (503). Vui lòng nhấn thử lại sau vài giây.';
+      } else if (rawMessage.includes('429') || rawMessage.includes('RESOURCE_EXHAUSTED')) {
+        friendly = 'Đã vượt giới hạn tần suất gọi API tạm thời (429). Vui lòng chờ giây lát và thử lại.';
+      } else if (
+        rawMessage.includes('API_KEY') ||
+        rawMessage.includes('401') ||
+        rawMessage.includes('403')
+      ) {
+        friendly = 'GEMINI_API_KEY không hợp lệ hoặc chưa được cấp quyền truy cập mô hình.';
+      } else if (rawMessage) {
+        friendly = `Lỗi hỏi đáp Gemini AI: ${rawMessage}`;
       }
       res.status(502).json({ error: friendly });
     }

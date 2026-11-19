@@ -105,6 +105,13 @@ export const AboutView: React.FC<AboutViewProps> = ({
             >
               <span>Xem hồ sơ pháp lý A.1046</span>
             </button>
+            <button
+              type="button"
+              onClick={() => onNavigate('qa')}
+              className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-[#8C2D19] border border-[#8C2D19] hover:bg-[#8C2D19] hover:text-[#FBF9F5] rounded-sm transition-colors"
+            >
+              <span>Hỏi đáp</span>
+            </button>
           </div>
         </div>
 

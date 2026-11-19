@@ -9,6 +9,8 @@ import type {
   ImageProvenanceItem,
   LegalRightsInfo,
   MediaImageAsset,
+  ProjectQARequest,
+  ProjectQAResponse,
   ReferenceSource,
   SourceCheckResult,
   VerificationState,
@@ -325,6 +327,15 @@ export async function digitizeManuscript(
   payload: DigitizeManuscriptPayload
 ): Promise<DigitizeManuscriptResponse> {
   return apiRequest<DigitizeManuscriptResponse>('/api/digitize', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function askProjectQA(
+  payload: ProjectQARequest
+): Promise<ProjectQAResponse> {
+  return apiRequest<ProjectQAResponse>('/api/qa', {
     method: 'POST',
     body: JSON.stringify(payload),
   });

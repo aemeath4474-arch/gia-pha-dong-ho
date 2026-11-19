@@ -1743,7 +1743,7 @@ export const INITIAL_IMAGE_PROVENANCE: ImageProvenanceItem[] = [
     imageUrl: ARCHIVE_IMAGES.heroManuscript,
     sourceOrigin: 'Ảnh minh họa biên tập cho dự án B02 (tách biệt với bản chụp gốc A.1046)',
     caption: 'Hình 1 — Minh họa cuốn gia phả Hán Nôm cổ đóng gáy chỉ trên giấy dó.',
-    usageScope: 'Trang Tổng quan, Đối chiếu (Tr.01–02) & Trang Hồ sơ Pháp lý',
+    usageScope: 'Trang chủ, Đối chiếu (Tr.01–02) & Trang Hồ sơ Pháp lý',
     verificationNote: 'Đã xác minh phân loại: Ảnh minh họa học thuật.',
   },
   {
@@ -1752,7 +1752,7 @@ export const INITIAL_IMAGE_PROVENANCE: ImageProvenanceItem[] = [
     imageUrl: ARCHIVE_IMAGES.specimenPlate,
     sourceOrigin: 'Ảnh minh họa cấu trúc trang giấy dó Hán Nôm cho giao diện đối chiếu',
     caption: 'Hình 2 — Tờ giấy bản mẫu minh họa chức năng đối chiếu cột Hán Nôm – Quốc ngữ.',
-    usageScope: 'Trang Tổng quan, Đối chiếu 82 trang & Sơ đồ phả hệ',
+    usageScope: 'Trang chủ, Đối chiếu 82 trang & Sơ đồ phả hệ',
     verificationNote: 'Đã xác minh phân loại: Ảnh minh họa cấu trúc đối chiếu.',
   },
   {
@@ -1761,7 +1761,7 @@ export const INITIAL_IMAGE_PROVENANCE: ImageProvenanceItem[] = [
     imageUrl: ARCHIVE_IMAGES.readingRoom,
     sourceOrigin: 'Ảnh minh họa không gian thư viện bảo quản di sản Hán Nôm',
     caption: 'Hình 3 — Minh họa không gian bảo quản và khai thác tư liệu cổ.',
-    usageScope: 'Trang Tổng quan, Hồ sơ Pháp lý & Giới thiệu',
+    usageScope: 'Trang chủ, Hồ sơ Pháp lý & Giới thiệu',
     verificationNote: 'Đã xác minh phân loại: Ảnh minh họa không gian lưu trữ.',
   },
   {
@@ -1770,7 +1770,7 @@ export const INITIAL_IMAGE_PROVENANCE: ImageProvenanceItem[] = [
     imageUrl: ARCHIVE_IMAGES.digitizationStudio,
     sourceOrigin: 'Ảnh minh họa quy trình chụp phẳng tài liệu trên giá đỡ chữ V',
     caption: 'Hình 4 — Minh họa quy trình chuyển đổi tư liệu giấy sang bản số không xâm hại.',
-    usageScope: 'Trang Tổng quan, Hồ sơ Pháp lý & Giới thiệu',
+    usageScope: 'Trang chủ, Hồ sơ Pháp lý & Giới thiệu',
     verificationNote: 'Đã xác minh phân loại: Ảnh minh họa quy trình kỹ thuật số hóa.',
   },
   {
@@ -1779,7 +1779,7 @@ export const INITIAL_IMAGE_PROVENANCE: ImageProvenanceItem[] = [
     imageUrl: ARCHIVE_IMAGES.boikheCourtyard,
     sourceOrigin: 'Ảnh minh họa kiến trúc di sản truyền thống Bắc Bộ',
     caption: 'Hình 5 — Minh họa không gian di sản văn hóa dòng họ truyền thống.',
-    usageScope: 'Trang Tổng quan, Sơ đồ phả hệ & Giới thiệu',
+    usageScope: 'Trang chủ, Sơ đồ phả hệ & Giới thiệu',
     verificationNote: 'Đã xác minh phân loại: Ảnh minh họa bối cảnh văn hóa.',
   },
   {
@@ -2031,7 +2031,7 @@ export const INITIAL_MEDIA_IMAGES: MediaImageAsset[] = [
 ];
 
 export const INITIAL_DATABASE: ArchiveDatabase = {
-  seedVersion: 4,
+  seedVersion: 5,
   folios: INITIAL_FOLIOS,
   characters: INITIAL_CHARACTERS,
   dossiers: INITIAL_DOSSIERS,

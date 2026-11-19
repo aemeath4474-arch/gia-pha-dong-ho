@@ -5,6 +5,7 @@ export type AppSection =
   | 'genealogy'
   | 'dossiers'
   | 'dossier'
+  | 'qa'
   | 'about';
 
 export type VerificationState = 'Chưa xác minh' | 'Dữ liệu mẫu' | 'Đang xác minh' | 'Đã xác minh';
@@ -273,4 +274,40 @@ export interface DigitizeManuscriptResponse {
   extractedGenealogy: DigitizeGenealogySuggestion[];
   digitizedAt: string;
   modelUsed: string;
+}
+
+export interface ProjectQACitation {
+  code: string;
+  label: string;
+  section: AppSection;
+  pageNumber?: number;
+}
+
+export interface ProjectQAHistoryTurn {
+  role: 'user' | 'model';
+  text: string;
+}
+
+export interface ProjectQARequest {
+  question: string;
+  history?: ProjectQAHistoryTurn[];
+}
+
+export interface ProjectQAResponse {
+  answer: string;
+  citedRecords: ProjectQACitation[];
+  suggestedFollowUps: string[];
+  verificationNote: string;
+  modelUsed: string;
+  answeredAt: string;
+}
+
+export interface ProjectQAMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+  citedRecords?: ProjectQACitation[];
+  suggestedFollowUps?: string[];
+  verificationNote?: string;
+  createdAt: string;
 }

@@ -66,6 +66,13 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                 >
                   <span>Xem {db.dossiers.length} hồ sơ</span>
                 </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('qa')}
+                  className="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium text-[#1C1917] border border-[#D6CEBE] hover:border-[#8C2D19] hover:text-[#8C2D19] transition-colors rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8C2D19]"
+                >
+                  <span>Hỏi đáp</span>
+                </button>
               </div>
             </div>
 
